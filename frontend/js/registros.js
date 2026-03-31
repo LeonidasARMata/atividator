@@ -13,9 +13,17 @@ const Registros = (() => {
     const descricao = document.getElementById('rg-desc').value.trim();
     const files     = document.getElementById('rg-imgs').files;
     const err       = document.getElementById('rg-err');
+    const btn       = document.getElementById('btn-add-registro');
 
-    if (!titulo || !materia || !descricao) { err.style.display = 'block'; return; }
+    if (!titulo || !materia || !descricao) {
+      err.textContent   = 'Preencha título, matéria e descrição.';
+      err.style.display = 'block';
+      return;
+    }
     err.style.display = 'none';
+
+    btn.disabled    = true;
+    btn.textContent = 'Publicando...';
 
     try {
       const novo = await Api.createRegistro(titulo, materia, descricao, [...files]);
@@ -23,7 +31,13 @@ const Registros = (() => {
       UI.fecharModalRegistro();
       _limpar();
       UI.renderRegistros();
-    } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    } catch (e) {
+      err.textContent   = e.message;
+      err.style.display = 'block';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Publicar';
+    }
   }
 
   async function excluir(id) {

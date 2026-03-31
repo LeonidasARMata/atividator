@@ -8,15 +8,24 @@ const Tasks = (() => {
   }
 
   async function add() {
-    const nome        = document.getElementById('m-nome').value.trim();
-    const materia     = document.getElementById('m-mat').value;
+    const nome         = document.getElementById('m-nome').value.trim();
+    const materia      = document.getElementById('m-mat').value;
     const data_entrega = document.getElementById('m-entrega').value;
-    const data_envio  = document.getElementById('m-envio').value || null;
+    const data_envio   = document.getElementById('m-envio').value || null;
     const visibilidade = document.querySelector('input[name="vis"]:checked').value;
-    const err = document.getElementById('m-err');
+    const err          = document.getElementById('m-err');
+    const btn          = document.getElementById('btn-add-tarefa');
 
-    if (!nome || !materia || !data_entrega) { err.style.display = 'block'; return; }
+    if (!nome || !materia || !data_entrega) {
+      err.textContent   = 'Preencha nome, matéria e data de entrega.';
+      err.style.display = 'block';
+      return;
+    }
     err.style.display = 'none';
+
+    // Bloqueia o botão durante a requisição — evita cliques duplos
+    btn.disabled        = true;
+    btn.textContent     = 'Adicionando...';
 
     try {
       const nova = await Api.createTask({ nome, materia, data_entrega, data_envio, visibilidade });
@@ -24,7 +33,13 @@ const Tasks = (() => {
       UI.fecharModalTarefa();
       _limpar();
       UI.renderTarefas();
-    } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    } catch (e) {
+      err.textContent   = e.message;
+      err.style.display = 'block';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Adicionar';
+    }
   }
 
   async function toggleDone(taskId) {
