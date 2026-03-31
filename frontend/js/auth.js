@@ -1,0 +1,160 @@
+const Auth = (() => {
+  let currentUser = null;
+  const get = () => currentUser;
+  const isAdmin = () => currentUser?.is_admin === true;
+
+  // ── Carrega turmas no select do cadastro ──────────────────────
+  async function carregarTurmas() {
+    try {
+      const turmas = await Api.getTurmas();
+      const sel    = document.getElementById('r-turma');
+      sel.innerHTML = '<option value="">Selecione a turma...</option>';
+      turmas.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t.id;
+        o.textContent = `${t.ano}º Ano — Turma ${t.letra}`;
+        sel.appendChild(o);
+      });
+    } catch {}
+  }
+
+  // ── Registro ──────────────────────────────────────────────────
+  async function register() {
+    const email    = _v('r-email');
+    const nome     = _v('r-nome');
+    const username = _v('r-username');
+    const turma_id = document.getElementById('r-turma')?.value || '';
+    const senha    = _v('r-senha');
+    const confirma = _v('r-confirma');
+
+    _hideErr('r-err');
+
+    if (!nome)     return _err('r-err', 'Informe seu nome completo.');
+    if (!email)    return _err('r-err', 'Informe seu e-mail.');
+    if (!username) return _err('r-err', 'Informe um nome de usuário.');
+    if (!turma_id) return _err('r-err', 'Selecione sua turma.');
+    if (!senha)    return _err('r-err', 'Crie uma senha.');
+    if (senha.length < 6)      return _err('r-err', 'A senha deve ter pelo menos 6 caracteres.');
+    if (senha !== confirma)    return _err('r-err', 'As senhas não coincidem.');
+
+    const btn = document.querySelector('#pg-register .btn');
+    btn.disabled = true;
+    btn.textContent = 'Criando conta...';
+
+    try {
+      const res = await Api.register({ email, nome, username, turma_id, senha });
+      localStorage.setItem('token', res.token);
+      currentUser = res.user;
+      _entrarApp();
+    } catch (e) {
+      _err('r-err', _friendlyError(e.message));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Criar conta';
+    }
+  }
+
+  // ── Login ─────────────────────────────────────────────────────
+  async function login() {
+    const email = _v('l-email');
+    const senha = _v('l-senha');
+
+    _hideErr('l-err');
+
+    if (!email) return _err('l-err', 'Informe seu e-mail.');
+    if (!senha) return _err('l-err', 'Informe sua senha.');
+
+    const btn = document.querySelector('#pg-login .btn');
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+
+    try {
+      const res = await Api.login(email, senha);
+      localStorage.setItem('token', res.token);
+      currentUser = res.user;
+      _entrarApp();
+    } catch (e) {
+      _err('l-err', _friendlyError(e.message));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  // ── Config ────────────────────────────────────────────────────
+  async function salvarConfig2() {
+    const dias    = parseInt(document.getElementById('cfg2-dias').value);
+    const atencao = UI.getChecked('cfg2-materias');
+    try {
+      currentUser = await Api.updateConfig(dias, atencao);
+      UI.fecharCfg();
+      UI.render();
+    } catch (e) { alert(e.message); }
+  }
+
+  // ── Logout ────────────────────────────────────────────────────
+  function sair() {
+    currentUser = null;
+    localStorage.removeItem('token');
+    document.getElementById('fab').classList.remove('on');
+    document.getElementById('bottom-nav').style.display = 'none';
+    UI.show('pg-login');
+  }
+
+  // ── Restaurar sessão ──────────────────────────────────────────
+  async function tentarRestaurar() {
+    if (!localStorage.getItem('token')) return false;
+    try {
+      currentUser = await Api.getMe();
+      _entrarApp();
+      return true;
+    } catch {
+      localStorage.removeItem('token');
+      return false;
+    }
+  }
+
+  // ── privado ───────────────────────────────────────────────────
+  function _entrarApp() {
+    const u        = currentUser;
+    const initials = u.nome.split(' ').slice(0,2).map(x => x[0].toUpperCase()).join('');
+    document.getElementById('av').textContent      = initials;
+    document.getElementById('av-nome').textContent = u.username;
+    document.getElementById('av-turma').textContent =
+      `${u.turma_id[0]}º Ano · Turma ${u.turma_id[1]}`;
+
+    if (u.is_admin) {
+      document.getElementById('nav-admin').style.display = 'flex';
+    }
+
+    document.getElementById('bottom-nav').style.display = 'flex';
+    document.getElementById('fab').classList.add('on');
+    UI.montarSelectMaterias();
+    UI.show('pg-app');
+    UI.setSection('tarefas');
+  }
+
+  const _v       = id => document.getElementById(id)?.value?.trim() || '';
+  const _hideErr = id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+  const _err     = (id, msg) => {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.display = 'block';
+  };
+
+  // Traduz erros técnicos para mensagens amigáveis
+  function _friendlyError(msg) {
+    if (!msg || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed'))
+      return 'Não foi possível conectar ao servidor. Tente novamente.';
+    if (msg.includes('não encontrado') || msg.includes('not found'))
+      return 'E-mail não cadastrado. Verifique ou crie uma conta.';
+    if (msg.includes('Senha incorreta') || msg.includes('incorreta'))
+      return 'Senha incorreta. Tente novamente.';
+    if (msg.includes('já cadastrado') || msg.includes('already'))
+      return 'E-mail ou nome de usuário já está em uso.';
+    if (msg.includes('Turma inválida'))
+      return 'Selecione uma turma válida.';
+    return msg;
+  }
+
+  return { get, isAdmin, carregarTurmas, register, login, salvarConfig2, sair, tentarRestaurar };
+})();

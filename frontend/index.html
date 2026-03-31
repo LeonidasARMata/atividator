@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atividades da Turma</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/badges.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LOGIN
+════════════════════════════════════════════════════════════════ -->
+<div id="pg-login" class="page on">
+  <div class="center">
+    <div class="box">
+      <h2>Atividades da turma</h2>
+      <p class="sub">Entre com seu e-mail e senha</p>
+      <div class="f"><label>E-mail</label>
+        <input id="l-email" type="email" placeholder="seu@email.com" />
+      </div>
+      <div class="f"><label>Senha</label>
+        <input id="l-senha" type="password" placeholder="••••••" />
+      </div>
+      <button class="btn" onclick="Auth.login()">Entrar</button>
+      <p class="err" id="l-err"></p>
+      <p class="switch-link">Não tem conta?
+        <button class="link-btn" onclick="UI.show('pg-register')">Cadastre-se</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CADASTRO
+════════════════════════════════════════════════════════════════ -->
+<div id="pg-register" class="page">
+  <div class="center">
+    <div class="box">
+      <h2>Criar conta</h2>
+      <p class="sub">Preencha seus dados para entrar na turma</p>
+      <div class="f"><label>Nome completo</label>
+        <input id="r-nome" type="text" placeholder="Ex: João Silva" />
+      </div>
+      <div class="f"><label>E-mail</label>
+        <input id="r-email" type="email" placeholder="seu@email.com" />
+      </div>
+      <div class="f"><label>Nome de usuário <span class="hint">(visível para a turma)</span></label>
+        <input id="r-username" type="text" placeholder="Ex: joaosilva" />
+      </div>
+      <div class="f"><label>Turma</label>
+        <select id="r-turma"><option value="">Carregando turmas...</option></select>
+      </div>
+      <div class="f"><label>Senha</label>
+        <input id="r-senha" type="password" placeholder="mín. 6 caracteres" />
+      </div>
+      <div class="f"><label>Confirmar senha</label>
+        <input id="r-confirma" type="password" placeholder="repita a senha" />
+      </div>
+      <button class="btn" onclick="Auth.register()">Criar conta</button>
+      <p class="err" id="r-err"></p>
+      <p class="switch-link">Já tem conta?
+        <button class="link-btn" onclick="UI.show('pg-login')">Entrar</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     APP PRINCIPAL
+════════════════════════════════════════════════════════════════ -->
+<div id="pg-app" class="page">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="avatar" id="av"></div>
+      <div class="topbar-names">
+        <span id="av-nome" class="topbar-username"></span>
+        <span id="av-turma" class="topbar-turma"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="link-btn" onclick="UI.abrirCfg()">config.</button>
+      <button class="link-btn" onclick="Auth.sair()">sair</button>
+    </div>
+  </div>
+
+  <!-- ── SEÇÃO: TAREFAS ────────────────────────────────────────── -->
+  <div id="sec-tarefas" class="section on">
+    <div class="tabs">
+      <button class="tab on" onclick="UI.setTab('pendentes',this)">Pendentes</button>
+      <button class="tab"    onclick="UI.setTab('concluidas',this)">Concluídas</button>
+    </div>
+    <div class="filters">
+      <span class="fl">Filtrar:</span>
+      <select id="fil-mat" onchange="UI.renderTarefas()">
+        <option value="">Todas as matérias</option>
+      </select>
+      <span class="fl">Ordenar:</span>
+      <select id="fil-ord" onchange="UI.renderTarefas()">
+        <option value="entrega">Data de entrega</option>
+        <option value="envio">Data de envio</option>
+        <option value="materia">Matéria</option>
+      </select>
+    </div>
+    <div class="tasks" id="task-list"></div>
+  </div>
+
+  <!-- ── SEÇÃO: REGISTROS ──────────────────────────────────────── -->
+  <div id="sec-registros" class="section">
+    <div class="filters">
+      <span class="fl">Filtrar por matéria:</span>
+      <select id="fil-reg-mat" onchange="UI.renderRegistros()">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div id="reg-list" class="reg-list"></div>
+  </div>
+
+  <!-- ── SEÇÃO: ADMIN — USUÁRIOS ───────────────────────────────── -->
+  <div id="sec-admin-users" class="section">
+    <p class="section-title">Usuários por turma</p>
+    <div id="admin-users-list" class="admin-list"></div>
+  </div>
+
+  <!-- ── SEÇÃO: ADMIN — TAREFAS ────────────────────────────────── -->
+  <div id="sec-admin-tasks" class="section">
+    <p class="section-title">Todas as tarefas</p>
+    <div id="admin-tasks-list" class="admin-list"></div>
+  </div>
+
+  <!-- ── SEÇÃO: ADMIN — TURMAS ─────────────────────────────────── -->
+  <div id="sec-admin-turmas" class="section">
+    <p class="section-title">Gerenciar turmas</p>
+    <div class="admin-create-turma">
+      <select id="nova-turma-ano">
+        <option value="">Ano</option>
+        <option value="1">1º Ano</option>
+        <option value="2">2º Ano</option>
+        <option value="3">3º Ano</option>
+      </select>
+      <input id="nova-turma-letra" type="text" maxlength="1" placeholder="Letra (A–Z)" style="width:80px" />
+      <button class="btn-blue" onclick="Admin.criarTurma()">Criar turma</button>
+    </div>
+    <div id="admin-turmas-list" class="admin-list" style="margin-top:1rem"></div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="UI.fabClick()">+</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn on" data-section="tarefas"      onclick="UI.setSection('tarefas')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="2" rx="1" fill="currentColor"/><rect x="3" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="2" rx="1" fill="currentColor"/></svg>
+    <span>Tarefas</span>
+  </button>
+  <button class="nav-btn" data-section="registros"       onclick="UI.setSection('registros')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7" width="6" height="1.5" rx=".75" fill="currentColor"/><rect x="7" y="10" width="4" height="1.5" rx=".75" fill="currentColor"/></svg>
+    <span>Registros</span>
+  </button>
+  <button class="nav-btn" data-section="admin-users"  id="nav-admin" style="display:none" onclick="UI.setSection('admin-users')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span>Usuários</span>
+  </button>
+  <button class="nav-btn" data-section="admin-tasks" id="nav-admin-tasks" style="display:none" onclick="UI.setSection('admin-tasks')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3L3 7v6l7 4 7-4V7l-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <span>Adm. Tarefas</span>
+  </button>
+  <button class="nav-btn" data-section="admin-turmas" id="nav-admin-turmas" style="display:none" onclick="UI.setSection('admin-turmas')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Turmas</span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: NOVA TAREFA
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-tarefa">
+  <div class="modal">
+    <p class="modal-title">Nova tarefa</p>
+    <div class="f"><label>O que deve ser feito</label>
+      <input id="m-nome" type="text" placeholder="Descrição da atividade" />
+    </div>
+    <div class="f"><label>Matéria</label>
+      <select id="m-mat"><option value="">Selecione...</option></select>
+    </div>
+    <div class="f-row">
+      <div class="f"><label>Data de entrega</label>
+        <input id="m-entrega" type="date" />
+      </div>
+      <div class="f"><label>Data de envio real</label>
+        <input id="m-envio" type="date" />
+      </div>
+    </div>
+    <div class="f"><label>Visibilidade</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="vis" value="publica" checked /> Pública</label>
+        <label class="radio-opt"><input type="radio" name="vis" value="privada" /> Privada</label>
+      </div>
+    </div>
+    <p class="err" id="m-err">Preencha nome, matéria e data de entrega.</p>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="UI.fecharModalTarefa()">Cancelar</button>
+      <button class="btn-blue"  onclick="Tasks.add()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: NOVO REGISTRO
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-registro">
+  <div class="modal">
+    <p class="modal-title">Novo registro</p>
+    <div class="f"><label>Título</label>
+      <input id="rg-titulo" type="text" placeholder="Ex: Resumo sobre fotossíntese" />
+    </div>
+    <div class="f"><label>Matéria</label>
+      <select id="rg-mat"><option value="">Selecione...</option></select>
+    </div>
+    <div class="f"><label>Descrição</label>
+      <textarea id="rg-desc" rows="4" placeholder="Escreva o conteúdo do registro..." style="width:100%;resize:vertical"></textarea>
+    </div>
+    <div class="f"><label>Imagens <span class="hint">(opcional, máx. 10)</span></label>
+      <input id="rg-imgs" type="file" accept="image/*" multiple />
+    </div>
+    <p class="err" id="rg-err">Preencha título, matéria e descrição.</p>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="UI.fecharModalRegistro()">Cancelar</button>
+      <button class="btn-blue"  onclick="Registros.add()">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: CONFIGURAÇÕES
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-cfg">
+  <div class="modal">
+    <p class="modal-title">Configurações</p>
+    <div class="cfg-section">
+      <div class="cfg-label">Avisar urgência com quantos dias de antecedência?</div>
+      <div class="range-row">
+        <input type="range" id="cfg2-dias" min="1" max="14" value="3" step="1"
+          oninput="UI.updateRangeLabel('cfg2-dias','cfg2-dias-val')" />
+        <span class="range-val" id="cfg2-dias-val">3 dias</span>
+      </div>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-label">Matérias de atenção</div>
+      <div class="multi-select" id="cfg2-materias"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="UI.fecharCfg()">Cancelar</button>
+      <button class="btn-blue"  onclick="Auth.salvarConfig2()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OVERLAY: VISUALIZAR IMAGEM
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay overlay-dark" id="ov-imagem" onclick="UI.fecharImagem()">
+  <img id="img-overlay-src" src="" alt="imagem ampliada" class="img-overlay" />
+</div>
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/dates.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/registros.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

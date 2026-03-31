@@ -1,0 +1,12 @@
+.badge { font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap;display:inline-block; }
+.b-materia  { background:var(--badge-materia-bg);  color:var(--badge-materia-text); }
+.b-entrega  { background:var(--color-bg-danger);   color:var(--color-text-danger); }
+.b-envio    { background:var(--color-bg-success);  color:var(--color-text-success); }
+.b-privada  { background:var(--color-bg-warning);  color:var(--color-text-warning); }
+.b-ok       { background:var(--color-bg-success);  color:var(--color-text-success); }
+.b-urgente  { background:var(--color-bg-warning);  color:var(--color-text-warning); }
+.b-atrasada { background:var(--color-bg-danger);   color:var(--color-text-danger); }
+.b-enviada  { background:var(--color-bg-success);  color:var(--color-text-success); }
+.b-atencao  { background:var(--color-bg-info);     color:var(--color-text-info); }
+.b-admin    { background:#EEEDFE;                  color:#3C3489; }
+.b-user     { background:var(--color-bg-subtle);   color:var(--color-text-secondary); }

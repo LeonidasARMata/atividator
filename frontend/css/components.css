@@ -1,0 +1,42 @@
+.btn { width:100%;padding:9px;background:var(--color-bg-surface);border:0.5px solid var(--color-border-medium);border-radius:var(--radius-md);font-size:14px;font-weight:500;color:var(--color-text-primary);transition:background var(--transition); }
+.btn:hover { background:var(--color-bg-subtle); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn-blue { padding:7px 16px;background:var(--color-accent);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:500;color:var(--color-accent-text);transition:background var(--transition); }
+.btn-blue:hover { background:var(--color-accent-hover); }
+.btn-ghost { padding:7px 14px;background:none;border:0.5px solid var(--color-border-medium);border-radius:var(--radius-md);font-size:13px;color:var(--color-text-secondary);transition:background var(--transition); }
+.btn-ghost:hover { background:var(--color-bg-subtle); }
+.btn-sm { padding:4px 10px;font-size:12px;background:none;border:0.5px solid var(--color-border-medium);border-radius:var(--radius-sm);color:var(--color-text-secondary);transition:background var(--transition); }
+.btn-sm:hover { background:var(--color-bg-subtle); }
+.btn-sm.btn-danger { border-color:var(--color-bg-danger);color:var(--color-text-danger); }
+.btn-sm.btn-danger:hover { background:var(--color-bg-danger); }
+.btn-sm.btn-pin { border-color:var(--color-bg-info);color:var(--color-text-info); }
+.btn-sm.btn-pin:hover { background:var(--color-bg-info); }
+.btn-icon-danger { background:none;border:none;font-size:12px;color:var(--color-text-tertiary, #888);padding:2px 6px;border-radius:var(--radius-sm);transition:color var(--transition),background var(--transition); }
+.btn-icon-danger:hover { color:var(--color-text-danger);background:var(--color-bg-danger); }
+.link-btn { background:none;border:none;font-size:12px;color:var(--color-text-secondary);text-decoration:underline;cursor:pointer; }
+.link-btn:hover { color:var(--color-text-primary); }
+
+.avatar { width:32px;height:32px;border-radius:50%;background:var(--color-bg-info);color:var(--color-text-info);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0; }
+
+.tab { padding:6px 16px;font-size:13px;color:var(--color-text-secondary);border:none;border-bottom:2px solid transparent;background:none;margin-bottom:-0.5px;transition:color var(--transition),border-color var(--transition); }
+.tab.on { color:var(--color-accent);border-bottom-color:var(--color-accent);font-weight:500; }
+
+.tc { background:var(--color-bg-surface);border:0.5px solid var(--color-border-default);border-radius:var(--radius-lg);padding:.9rem 1rem;display:flex;align-items:flex-start;gap:10px; }
+.tc.ok       { border-left:3px solid var(--color-status-ok);    border-radius:0 var(--radius-lg) var(--radius-lg) 0; }
+.tc.urgente  { border-left:3px solid var(--color-status-urgent); border-radius:0 var(--radius-lg) var(--radius-lg) 0; }
+.tc.atrasada { border-left:3px solid var(--color-status-late);   border-radius:0 var(--radius-lg) var(--radius-lg) 0; }
+.tc.enviada  { border-left:3px solid var(--color-status-sent);   border-radius:0 var(--radius-lg) var(--radius-lg) 0; }
+.tc.atencao  { border-left:3px solid var(--color-status-focus);  border-radius:0 var(--radius-lg) var(--radius-lg) 0; }
+.tc.concluida { opacity:.5; }
+
+.chk { width:17px;height:17px;border:0.5px solid var(--color-border-medium);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-size:11px;color:transparent;background:var(--color-bg-surface);transition:background var(--transition),border-color var(--transition),color var(--transition);user-select:none; }
+.chk.on { background:var(--color-status-ok);border-color:var(--color-status-ok);color:white; }
+
+.tb { flex:1;min-width:0; }
+.tn { font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px; }
+.tn.riscado { text-decoration:line-through;color:var(--color-text-secondary); }
+.meta { display:flex;gap:6px;flex-wrap:wrap;align-items:center; }
+
+.fab { position:fixed;bottom:76px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--color-accent);border:none;color:var(--color-accent-text);font-size:22px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;transition:background var(--transition);z-index:39; }
+.fab.on { display:flex; }
+.fab:hover { background:var(--color-accent-hover); }

@@ -1,0 +1,68 @@
+:root {
+  --color-bg-page:        #F5F4F0;
+  --color-bg-surface:     #FFFFFF;
+  --color-bg-subtle:      #F1EFE8;
+  --color-bg-info:        #E6F1FB;
+  --color-bg-success:     #EAF3DE;
+  --color-bg-warning:     #FAEEDA;
+  --color-bg-danger:      #FCEBEB;
+  --color-bg-nav:         #FFFFFF;
+
+  --color-text-primary:   #1A1A18;
+  --color-text-secondary: #5F5E5A;
+  --color-text-info:      #0C447C;
+  --color-text-success:   #27500A;
+  --color-text-warning:   #633806;
+  --color-text-danger:    #791F1F;
+
+  --color-border-default: rgba(0,0,0,0.11);
+  --color-border-medium:  rgba(0,0,0,0.20);
+
+  --color-accent:         #185FA5;
+  --color-accent-hover:   #0C447C;
+  --color-accent-text:    #E6F1FB;
+
+  --color-status-ok:      #639922;
+  --color-status-urgent:  #EF9F27;
+  --color-status-late:    #E24B4A;
+  --color-status-sent:    #1D9E75;
+  --color-status-focus:   #378ADD;
+
+  --badge-materia-bg:     #EEEDFE;
+  --badge-materia-text:   #3C3489;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: 0.15s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-page:        #1C1C1A;
+    --color-bg-surface:     #252523;
+    --color-bg-subtle:      #2C2C2A;
+    --color-bg-info:        #042C53;
+    --color-bg-success:     #173404;
+    --color-bg-warning:     #412402;
+    --color-bg-danger:      #501313;
+    --color-bg-nav:         #1C1C1A;
+
+    --color-text-primary:   #F0EFE8;
+    --color-text-secondary: #B4B2A9;
+    --color-text-info:      #B5D4F4;
+    --color-text-success:   #C0DD97;
+    --color-text-warning:   #FAC775;
+    --color-text-danger:    #F7C1C1;
+
+    --color-border-default: rgba(255,255,255,0.09);
+    --color-border-medium:  rgba(255,255,255,0.17);
+
+    --color-accent:         #378ADD;
+    --color-accent-hover:   #85B7EB;
+    --color-accent-text:    #042C53;
+
+    --badge-materia-bg:     #26215C;
+    --badge-materia-text:   #CECBF6;
+  }
+}

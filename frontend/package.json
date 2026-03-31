@@ -1,0 +1,11 @@
+{
+  "name": "atividades-frontend",
+  "version": "2.0.0",
+  "scripts": {
+    "dev":   "npx serve . -p 5500",
+    "build": "echo 'HTML puro — sem build necessário'"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}
