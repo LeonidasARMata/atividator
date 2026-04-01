@@ -10,8 +10,10 @@ const Api = (() => {
   async function _req(method, path, body, isForm = false) {
     const key = `${method}:${path}`;
 
-    // Se já há uma requisição idêntica em andamento, retorna a mesma promise
-    if (_inflight.has(key)) return _inflight.get(key);
+    // Só deduplifica GET — métodos que modificam dados (POST/PATCH/DELETE)
+    // nunca devem ser bloqueados ou retornar resultado de chamada anterior
+    const canDedup = method === 'GET';
+    if (canDedup && _inflight.has(key)) return _inflight.get(key);
 
     const headers = {};
     const token   = t();
@@ -43,7 +45,7 @@ const Api = (() => {
       })
       .finally(() => _inflight.delete(key));
 
-    _inflight.set(key, promise);
+    if (canDedup) _inflight.set(key, promise);
     return promise;
   }
 

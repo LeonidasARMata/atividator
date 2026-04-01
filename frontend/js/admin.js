@@ -96,9 +96,11 @@ const Admin = (() => {
   async function _excluirTarefa(id) {
     try {
       await Api.adminDeleteTask(id);
-      // Atualiza o cache da lista principal imediatamente
-      Tasks.removerDoCache(id);
-      await carregarTarefasAdmin();
+      // Atualiza as duas listas em paralelo
+      await Promise.all([
+        Tasks.carregar(),          // recarrega lista principal do servidor
+        carregarTarefasAdmin(),    // recarrega lista admin
+      ]);
     } catch (e) { _erro(e.message); }
   }
 

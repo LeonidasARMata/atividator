@@ -122,8 +122,15 @@ const UI = (() => {
 
 
 
-  function confirmarAcao() {
-    if (_confirmaCallback) _confirmaCallback();
+  async function confirmarAcao() {
+    if (_confirmaCallback) {
+      const btn = document.getElementById('btn-confirma-ok');
+      btn.disabled    = true;
+      btn.textContent = 'Aguarde...';
+      try   { await _confirmaCallback(); }
+      catch (e) { console.error(e); }
+      finally { btn.disabled = false; }
+    }
     fecharConfirma();
   }
 
