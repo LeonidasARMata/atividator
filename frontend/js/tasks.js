@@ -56,13 +56,15 @@ const Tasks = (() => {
     } catch (e) { console.error(e.message); }
   }
 
+  // Chamado pelo modal de confirmação — o confirm() já foi feito antes
   async function excluir(taskId) {
-    if (!confirm('Excluir esta tarefa?')) return;
     try {
       await Api.deleteTask(taskId);
       cache = cache.filter(t => t.id !== taskId);
       UI.renderTarefas();
-    } catch (e) { alert(e.message); }
+    } catch (e) {
+      UI.abrirConfirma('Erro ao excluir', e.message, null);
+    }
   }
 
   function _limpar() {

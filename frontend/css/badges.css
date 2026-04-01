@@ -10,3 +10,10 @@
 .b-atencao  { background:var(--color-bg-info);     color:var(--color-text-info); }
 .b-admin    { background:#EEEDFE;                  color:#3C3489; }
 .b-user     { background:var(--color-bg-subtle);   color:var(--color-text-secondary); }
+
+.b-delete-hint {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-tertiary, #888);
+  font-size: 10px;
+  opacity: 0.7;
+}

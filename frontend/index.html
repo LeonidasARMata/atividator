@@ -269,6 +269,20 @@
 <!-- ══════════════════════════════════════════════════════════════
      OVERLAY: VISUALIZAR IMAGEM
 ════════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: CONFIRMAÇÃO DE EXCLUSÃO
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-confirma">
+  <div class="modal modal-sm">
+    <p class="modal-title" id="confirma-titulo">Excluir tarefa?</p>
+    <p class="confirma-sub" id="confirma-sub">Essa ação não pode ser desfeita.</p>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="UI.fecharConfirma()">Cancelar</button>
+      <button class="btn-red"   id="btn-confirma-ok" onclick="UI.confirmarAcao()">Excluir</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay overlay-dark" id="ov-imagem" onclick="UI.fecharImagem()">
   <img id="img-overlay-src" src="" alt="imagem ampliada" class="img-overlay" />
 </div>

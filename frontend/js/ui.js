@@ -15,6 +15,7 @@ const MATERIAS = [
 const UI = (() => {
   let currentTab     = 'pendentes';
   let currentSection = 'tarefas';
+  let _confirmaCallback = null;   // função a executar ao confirmar
 
   // ─── Páginas ──────────────────────────────────────────────────────────────
 
@@ -59,6 +60,27 @@ const UI = (() => {
 
   function abrirModalRegistro()  { document.getElementById('ov-registro').classList.add('on'); }
   function fecharModalRegistro() { document.getElementById('ov-registro').classList.remove('on'); }
+
+  // ─── Modal: Config ────────────────────────────────────────────────────────
+
+  // ─── Modal: Confirmação ──────────────────────────────────────────────────
+
+  function abrirConfirma(titulo, sub, callback) {
+    document.getElementById('confirma-titulo').textContent = titulo;
+    document.getElementById('confirma-sub').textContent   = sub || 'Essa ação não pode ser desfeita.';
+    _confirmaCallback = callback;
+    document.getElementById('ov-confirma').classList.add('on');
+  }
+
+  function fecharConfirma() {
+    _confirmaCallback = null;
+    document.getElementById('ov-confirma').classList.remove('on');
+  }
+
+  function confirmarAcao() {
+    if (_confirmaCallback) _confirmaCallback();
+    fecharConfirma();
+  }
 
   // ─── Modal: Config ────────────────────────────────────────────────────────
 
@@ -181,12 +203,11 @@ const UI = (() => {
       if (isAtencao) statusBadge += '<span class="badge b-atencao">Atenção</span>';
     }
 
-    const canDelete = isOwner || Auth.isAdmin();
-
+    // Só o dono pode excluir pelo card. Admin usa a aba "Adm. Tarefas".
     const card = document.createElement('div');
-    card.className = `tc ${sideClass}${isDone ? ' concluida' : ''}`;
+    card.className = `tc ${sideClass}${isDone ? ' concluida' : ''}${isOwner ? ' owner-card' : ''}`;
     card.innerHTML = `
-      <div class="chk${isDone ? ' on' : ''}" onclick="Tasks.toggleDone('${task.id}')">${isDone ? '✓' : ''}</div>
+      <div class="chk${isDone ? ' on' : ''}" onclick="event.stopPropagation();Tasks.toggleDone('${task.id}')">${isDone ? '✓' : ''}</div>
       <div class="tb">
         <div class="tn${isDone ? ' riscado' : ''}">${task.nome}</div>
         <div class="meta">
@@ -196,9 +217,20 @@ const UI = (() => {
           ${task.visibilidade === 'privada' ? '<span class="badge b-privada">privada</span>' : ''}
           ${statusBadge}
           <span class="badge b-user">@${task.owner_username || '?'}</span>
+          ${isOwner ? '<span class="badge b-delete-hint">toque para excluir</span>' : ''}
         </div>
-      </div>
-      ${canDelete ? `<button class="btn-icon-danger" title="Excluir" onclick="Tasks.excluir('${task.id}')">✕</button>` : ''}`;
+      </div>`;
+
+    if (isOwner) {
+      card.addEventListener('click', () => {
+        UI.abrirConfirma(
+          'Excluir tarefa?',
+          `"${task.nome}" será removida permanentemente.`,
+          () => Tasks.excluir(task.id)
+        );
+      });
+    }
+
     container.appendChild(card);
   }
 
@@ -276,6 +308,7 @@ const UI = (() => {
     abrirModalTarefa, fecharModalTarefa,
     abrirModalRegistro, fecharModalRegistro,
     abrirCfg, fecharCfg,
+    abrirConfirma, fecharConfirma, confirmarAcao,
     fabClick,
     updateRangeLabel, montarMultiSelect, getChecked, montarSelectMaterias,
     render, renderTarefas, renderRegistros,

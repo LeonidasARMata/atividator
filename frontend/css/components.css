@@ -40,3 +40,14 @@
 .fab { position:fixed;bottom:76px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--color-accent);border:none;color:var(--color-accent-text);font-size:22px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;transition:background var(--transition);z-index:39; }
 .fab.on { display:flex; }
 .fab:hover { background:var(--color-accent-hover); }
+
+/* Card de tarefa clicável (dono pode excluir clicando) */
+.tc.owner-card {
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.tc.owner-card:hover {
+  background: var(--color-bg-subtle);
+  transform: translateX(2px);
+}
+.tc.owner-card:active { transform: scale(0.99); }
