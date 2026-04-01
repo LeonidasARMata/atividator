@@ -118,13 +118,15 @@ const Auth = (() => {
   function _entrarApp() {
     const u        = currentUser;
     const initials = u.nome.split(' ').slice(0,2).map(x => x[0].toUpperCase()).join('');
-    document.getElementById('av').textContent      = initials;
-    document.getElementById('av-nome').textContent = u.username;
+    document.getElementById('av').textContent       = initials;
+    document.getElementById('av-nome').textContent  = u.username;
     document.getElementById('av-turma').textContent =
       `${u.turma_id[0]}º Ano · Turma ${u.turma_id[1]}`;
 
     if (u.is_admin) {
-      document.getElementById('nav-admin').style.display = 'flex';
+      document.getElementById('nav-admin').style.display        = 'flex';
+      document.getElementById('nav-admin-tasks').style.display  = 'flex';
+      document.getElementById('nav-admin-turmas').style.display = 'flex';
     }
 
     document.getElementById('bottom-nav').style.display = 'flex';
@@ -132,6 +134,14 @@ const Auth = (() => {
     UI.montarSelectMaterias();
     UI.show('pg-app');
     UI.setSection('tarefas');
+
+    // Carrega dados APÓS a UI estar visível.
+    // setTimeout garante que o browser renderiza a tela primeiro,
+    // evitando tela em branco no celular na primeira entrada.
+    setTimeout(() => {
+      Tasks.carregar();
+      Registros.carregar();
+    }, 0);
   }
 
   const _v       = id => document.getElementById(id)?.value?.trim() || '';
