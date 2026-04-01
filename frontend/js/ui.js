@@ -51,6 +51,29 @@ const UI = (() => {
     renderTarefas();
   }
 
+  // ─── Menu admin (topbar) ─────────────────────────────────────────────────
+
+  function toggleAdminMenu() {
+    const btn  = document.getElementById('btn-admin-top');
+    const drop = document.getElementById('admin-dropdown');
+    const open = drop.classList.toggle('open');
+    btn.classList.toggle('open', open);
+  }
+
+  function _fecharAdminMenu() {
+    document.getElementById('admin-dropdown')?.classList.remove('open');
+    document.getElementById('btn-admin-top')?.classList.remove('open');
+  }
+
+  function abrirSecaoAdmin(section) {
+    _fecharAdminMenu();
+    setSection(section);
+  }
+
+  function voltarDaAdmin() {
+    setSection('tarefas');
+  }
+
   // ─── Modais: Tarefas ──────────────────────────────────────────────────────
 
   function abrirModalTarefa()  { document.getElementById('ov-tarefa').classList.add('on'); }
@@ -69,13 +92,35 @@ const UI = (() => {
     document.getElementById('confirma-titulo').textContent = titulo;
     document.getElementById('confirma-sub').textContent   = sub || 'Essa ação não pode ser desfeita.';
     _confirmaCallback = callback;
+
+    // Se não há callback (ex: exibir erro), esconde botão de confirmar
+    const footer = document.getElementById('confirma-footer');
+    const btnOk  = document.getElementById('btn-confirma-ok');
+    if (callback) {
+      footer.style.display = '';
+      btnOk.textContent = titulo.toLowerCase().includes('remov') ? 'Remover'
+                        : titulo.toLowerCase().includes('exclu') ? 'Excluir'
+                        : 'Confirmar';
+    } else {
+      // Modo erro: só botão "Fechar"
+      btnOk.style.display = 'none';
+      footer.querySelector('.btn-ghost').textContent = 'Fechar';
+    }
+
     document.getElementById('ov-confirma').classList.add('on');
   }
 
   function fecharConfirma() {
     _confirmaCallback = null;
     document.getElementById('ov-confirma').classList.remove('on');
+    // Restaura estado padrão
+    const btnOk = document.getElementById('btn-confirma-ok');
+    btnOk.style.display = '';
+    const cancelBtn = document.getElementById('confirma-footer')?.querySelector('.btn-ghost');
+    if (cancelBtn) cancelBtn.textContent = 'Cancelar';
   }
+
+
 
   function confirmarAcao() {
     if (_confirmaCallback) _confirmaCallback();
@@ -303,8 +348,15 @@ const UI = (() => {
     sel.appendChild(o);
   }
 
+  // Fecha o dropdown admin ao clicar em qualquer lugar fora dele
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('admin-menu-wrap');
+    if (wrap && !wrap.contains(e.target)) _fecharAdminMenu();
+  });
+
   return {
     show, setSection, setTab,
+    toggleAdminMenu, abrirSecaoAdmin, voltarDaAdmin,
     abrirModalTarefa, fecharModalTarefa,
     abrirModalRegistro, fecharModalRegistro,
     abrirCfg, fecharCfg,

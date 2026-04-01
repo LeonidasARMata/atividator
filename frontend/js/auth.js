@@ -124,9 +124,7 @@ const Auth = (() => {
       `${u.turma_id[0]}º Ano · Turma ${u.turma_id[1]}`;
 
     if (u.is_admin) {
-      document.getElementById('nav-admin').style.display        = 'flex';
-      document.getElementById('nav-admin-tasks').style.display  = 'flex';
-      document.getElementById('nav-admin-turmas').style.display = 'flex';
+      document.getElementById('admin-menu-wrap').style.display = 'flex';
     }
 
     document.getElementById('bottom-nav').style.display = 'flex';
