@@ -94,6 +94,7 @@ const Auth = (() => {
 
   // ── Logout ────────────────────────────────────────────────────
   function sair() {
+    Tasks.pararPolling();
     currentUser = null;
     localStorage.removeItem('token');
     document.getElementById('fab').classList.remove('on');
@@ -133,11 +134,11 @@ const Auth = (() => {
     UI.show('pg-app');
     UI.setSection('tarefas');
 
-    // Carrega dados APÓS a UI estar visível.
+    // Carrega dados APÓS a UI estar visível e inicia polling.
     // setTimeout garante que o browser renderiza a tela primeiro,
     // evitando tela em branco no celular na primeira entrada.
     setTimeout(() => {
-      Tasks.carregar();
+      Tasks.carregar().then(() => Tasks.iniciarPolling());
       Registros.carregar();
     }, 0);
   }

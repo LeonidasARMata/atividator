@@ -94,8 +94,12 @@ const Admin = (() => {
   }
 
   async function _excluirTarefa(id) {
-    try { await Api.adminDeleteTask(id); await carregarTarefasAdmin(); }
-    catch (e) { _erro(e.message); }
+    try {
+      await Api.adminDeleteTask(id);
+      // Atualiza o cache da lista principal imediatamente
+      Tasks.removerDoCache(id);
+      await carregarTarefasAdmin();
+    } catch (e) { _erro(e.message); }
   }
 
   async function carregarTurmas() {
