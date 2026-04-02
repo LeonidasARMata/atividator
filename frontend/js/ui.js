@@ -219,7 +219,7 @@ const UI = (() => {
       if (aAt && !bAt) return -1;
       if (!aAt && bAt) return  1;
       if (ord === 'entrega') return (a.data_entrega || '').localeCompare(b.data_entrega || '');
-      if (ord === 'envio')   return (a.data_envio   || 'z').localeCompare(b.data_envio || 'z');
+      if (ord === 'envio')   return (a.data_atribuicao   || 'z').localeCompare(b.data_atribuicao || 'z');
       return a.materia.localeCompare(b.materia);
     });
 
