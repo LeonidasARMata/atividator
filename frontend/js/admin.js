@@ -60,29 +60,91 @@ const Admin = (() => {
     catch (e) { _erro(e.message); }
   }
 
+  // Cache das tarefas admin — evita re-buscar ao filtrar
+  let _cacheAdminTasks = [];
+
   async function carregarTarefasAdmin() {
     try {
-      const tasks = await Api.adminGetTasks();
-      const list  = document.getElementById('admin-tasks-list');
-      list.innerHTML = '';
-
-      if (tasks.length === 0) {
-        list.innerHTML = '<div class="empty">Nenhuma tarefa cadastrada.</div>';
-        return;
-      }
-
-      tasks.forEach(t => {
-        const row = document.createElement('div');
-        row.className = 'admin-task-row';
-        row.innerHTML = `
-          <div class="admin-task-info">
-            <span class="admin-task-nome">${t.nome}</span>
-            <span class="admin-task-meta">${t.turma_id} · ${t.materia} · ${Dates.fmt(t.data_entrega)}</span>
-          </div>
-          <button class="btn-sm btn-danger" onclick="Admin.confirmarExcluirTarefa('${t.id}', \`${t.nome.replace(/`/g, "'")}\`)">Excluir</button>`;
-        list.appendChild(row);
-      });
+      _cacheAdminTasks = await Api.adminGetTasks();
+      _popularFiltrosAdmin(_cacheAdminTasks);
+      renderTarefasAdmin();
     } catch (e) { _erro(e.message); }
+  }
+
+  // Popula os selects de turma e matéria com os valores existentes
+  function _popularFiltrosAdmin(tasks) {
+    const turmas  = [...new Set(tasks.map(t => t.turma_id))].sort();
+    const mats    = [...new Set(tasks.map(t => t.materia))].sort();
+
+    const selTurma = document.getElementById('adm-fil-turma');
+    const selMat   = document.getElementById('adm-fil-mat');
+    if (!selTurma || !selMat) return;
+
+    const turmaAtual = selTurma.value;
+    const matAtual   = selMat.value;
+
+    selTurma.innerHTML = '<option value="">Todas as turmas</option>';
+    turmas.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t;
+      o.textContent = `${t[0]}º Ano · Turma ${t[1]}`;
+      if (t === turmaAtual) o.selected = true;
+      selTurma.appendChild(o);
+    });
+
+    selMat.innerHTML = '<option value="">Todas as matérias</option>';
+    mats.forEach(m => {
+      const o = document.createElement('option');
+      o.value = o.textContent = m;
+      if (m === matAtual) o.selected = true;
+      selMat.appendChild(o);
+    });
+  }
+
+  // Renderiza a lista com os filtros aplicados — chamada ao mudar qualquer select
+  function renderTarefasAdmin() {
+    const filTurma = document.getElementById('adm-fil-turma')?.value || '';
+    const filMat   = document.getElementById('adm-fil-mat')?.value   || '';
+    const filOrd   = document.getElementById('adm-fil-ord')?.value   || 'entrega';
+    const list     = document.getElementById('admin-tasks-list');
+    if (!list) return;
+
+    let visible = _cacheAdminTasks.filter(t => {
+      if (filTurma && t.turma_id !== filTurma) return false;
+      if (filMat   && t.materia  !== filMat)   return false;
+      return true;
+    });
+
+    visible.sort((a, b) => {
+      if (filOrd === 'entrega')    return (a.data_entrega    || '').localeCompare(b.data_entrega    || '');
+      if (filOrd === 'atribuicao') return (a.data_atribuicao || '').localeCompare(b.data_atribuicao || '');
+      if (filOrd === 'turma')      return a.turma_id.localeCompare(b.turma_id);
+      if (filOrd === 'materia')    return a.materia.localeCompare(b.materia);
+      return 0;
+    });
+
+    list.innerHTML = '';
+
+    if (visible.length === 0) {
+      list.innerHTML = '<div class="empty">Nenhuma tarefa encontrada.</div>';
+      return;
+    }
+
+    visible.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'admin-task-row';
+      row.innerHTML = `
+        <div class="admin-task-info">
+          <span class="admin-task-nome">${t.nome}</span>
+          <span class="admin-task-meta">
+            <span class="badge b-materia" style="font-size:11px">${t.materia}</span>
+            <span class="badge b-user"    style="font-size:11px">${t.turma_id[0]}º Ano · Turma ${t.turma_id[1]}</span>
+            <span style="font-size:11px;color:var(--color-text-secondary)">entrega: ${Dates.fmt(t.data_entrega)}</span>
+          </span>
+        </div>
+        <button class="btn-sm btn-danger" onclick="Admin.confirmarExcluirTarefa('${t.id}', \`${t.nome.replace(/`/g, "'")}\`)">Excluir</button>`;
+      list.appendChild(row);
+    });
   }
 
   function confirmarExcluirTarefa(id, nome) {
@@ -96,11 +158,10 @@ const Admin = (() => {
   async function _excluirTarefa(id) {
     try {
       await Api.adminDeleteTask(id);
-      // Atualiza as duas listas em paralelo
-      await Promise.all([
-        Tasks.carregar(),          // recarrega lista principal do servidor
-        carregarTarefasAdmin(),    // recarrega lista admin
-      ]);
+      // Remove do cache admin local e atualiza as duas listas
+      _cacheAdminTasks = _cacheAdminTasks.filter(t => t.id !== id);
+      renderTarefasAdmin();
+      Tasks.carregar();   // recarrega lista principal
     } catch (e) { _erro(e.message); }
   }
 
@@ -168,7 +229,7 @@ const Admin = (() => {
 
   return {
     carregarUsuarios, alterarTurma, confirmarRemoverUsuario,
-    carregarTarefasAdmin, confirmarExcluirTarefa,
+    carregarTarefasAdmin, renderTarefasAdmin, confirmarExcluirTarefa,
     carregarTurmas, criarTurma, confirmarExcluirTurma,
     toggleFixar,
   };

@@ -165,6 +165,23 @@
       <button class="btn-back" onclick="UI.voltarDaAdmin()">← Voltar</button>
       <p class="section-title" style="margin:0">Todas as tarefas</p>
     </div>
+    <div class="filters" style="margin-bottom:1rem">
+      <span class="fl">Turma:</span>
+      <select id="adm-fil-turma" onchange="Admin.renderTarefasAdmin()">
+        <option value="">Todas as turmas</option>
+      </select>
+      <span class="fl">Matéria:</span>
+      <select id="adm-fil-mat" onchange="Admin.renderTarefasAdmin()">
+        <option value="">Todas as matérias</option>
+      </select>
+      <span class="fl">Ordenar:</span>
+      <select id="adm-fil-ord" onchange="Admin.renderTarefasAdmin()">
+        <option value="entrega">Data de entrega</option>
+        <option value="atribuicao">Data de atribuição</option>
+        <option value="turma">Turma</option>
+        <option value="materia">Matéria</option>
+      </select>
+    </div>
     <div id="admin-tasks-list" class="admin-list"></div>
   </div>
 
