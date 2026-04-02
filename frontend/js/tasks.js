@@ -1,32 +1,33 @@
 const Tasks = (() => {
-  let cache       = [];
-  let _pollTimer  = null;
-  const POLL_MS   = 30_000;   // sincroniza a cada 30 segundos
+  let cache      = [];
+  let _pollTimer = null;
+  const POLL_MS  = 20_000;  // verifica a cada 20s
 
   const getCache = () => cache;
 
-  // ── Carrega tarefas do servidor e re-renderiza ─────────────────
+  // ── Carrega tarefas e re-renderiza ─────────────────────────────
   async function carregar() {
     try {
-      const novas = await Api.getTasks();
-      cache = novas;
+      cache = await Api.getTasks();
       UI.renderTarefas();
       UI.montarSelectMaterias();
     } catch (e) { console.error('Erro ao carregar tarefas:', e.message); }
   }
 
-  // ── Polling silencioso ─────────────────────────────────────────
-  // Recarrega as tarefas periodicamente sem travar a UI.
-  // Preserva o estado de "concluído" local: se o servidor devolver
-  // uma tarefa que o usuário já marcou, mantém o done_by correto.
+  // ── Polling — detecta mudanças no banco ────────────────────────
+  // A cada POLL_MS busca as tarefas e compara com o cache.
+  // Se algo mudou (nova tarefa, exclusão, edição), exibe o toast.
+  // Não re-renderiza automaticamente — deixa o usuário decidir.
   async function iniciarPolling() {
     pararPolling();
     _pollTimer = setInterval(async () => {
       try {
         const novas = await Api.getTasks();
-        cache = novas;
-        UI.renderTarefas();
-      } catch (_) { /* silencioso — não interrompe o usuário */ }
+        if (_houveMudanca(cache, novas)) {
+          _guardarPendente(novas);
+          UI.mostrarToastAtualizacao();
+        }
+      } catch (_) {}
     }, POLL_MS);
   }
 
@@ -34,9 +35,34 @@ const Tasks = (() => {
     if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
   }
 
-  // ── Remove uma tarefa do cache local imediatamente ─────────────
-  // Usado pelo admin.js para que a lista principal reflita
-  // a exclusão sem esperar o próximo poll.
+  // Cache temporário com as tarefas novas, aguardando o usuário confirmar
+  let _pendente = null;
+  function _guardarPendente(novas) { _pendente = novas; }
+
+  // Chamado pelo botão "Atualizar" do toast
+  function aplicarAtualizacao() {
+    if (_pendente) {
+      cache    = _pendente;
+      _pendente = null;
+    }
+    UI.renderTarefas();
+    UI.montarSelectMaterias();
+    UI.ocultarToastAtualizacao();
+  }
+
+  // Compara dois arrays de tarefas pelo id e pelo conteúdo relevante
+  function _houveMudanca(anterior, novo) {
+    if (anterior.length !== novo.length) return true;
+    const mapaAnterior = new Map(anterior.map(t => [t.id, t]));
+    for (const t of novo) {
+      const a = mapaAnterior.get(t.id);
+      if (!a) return true;  // tarefa nova
+      if (a.nome !== t.nome || a.data_entrega !== t.data_entrega) return true;
+    }
+    return false;
+  }
+
+  // Remove do cache local imediatamente (admin delete)
   function removerDoCache(taskId) {
     cache = cache.filter(t => t.id !== taskId);
     UI.renderTarefas();
@@ -58,7 +84,6 @@ const Tasks = (() => {
       return;
     }
     err.style.display = 'none';
-
     btn.disabled    = true;
     btn.textContent = 'Adicionando...';
 
@@ -93,7 +118,7 @@ const Tasks = (() => {
     } catch (e) { console.error(e.message); }
   }
 
-  // ── Excluir (pelo dono, via modal de confirmação) ──────────────
+  // ── Excluir (dono, via modal de confirmação) ───────────────────
   async function excluir(taskId) {
     try {
       await Api.deleteTask(taskId);
@@ -109,5 +134,9 @@ const Tasks = (() => {
     document.querySelector('input[name="vis"][value="publica"]').checked = true;
   }
 
-  return { getCache, carregar, iniciarPolling, pararPolling, removerDoCache, add, toggleDone, excluir };
+  return {
+    getCache, carregar, iniciarPolling, pararPolling,
+    aplicarAtualizacao, removerDoCache,
+    add, toggleDone, excluir,
+  };
 })();

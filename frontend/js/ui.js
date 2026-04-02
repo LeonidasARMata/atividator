@@ -206,9 +206,13 @@ const UI = (() => {
     const ord     = document.getElementById('fil-ord')?.value || 'entrega';
     const atencao = user.materias_atencao || [];
 
+    const visFil = document.getElementById('fil-vis')?.value || '';
+
     let visible = Tasks.getCache().filter(task => {
+      // Tarefas privadas só visíveis para o dono
       if (task.visibilidade === 'privada' && task.owner_id !== user.id) return false;
       if (matFil && task.materia !== matFil) return false;
+      if (visFil && task.visibilidade !== visFil) return false;
       const isDone = task.done_by.includes(user.id);
       return currentTab === 'concluidas' ? isDone : !isDone;
     });
@@ -219,7 +223,7 @@ const UI = (() => {
       if (aAt && !bAt) return -1;
       if (!aAt && bAt) return  1;
       if (ord === 'entrega') return (a.data_entrega || '').localeCompare(b.data_entrega || '');
-      if (ord === 'envio')   return (a.data_atribuicao   || 'z').localeCompare(b.data_atribuicao || 'z');
+      if (ord === 'atribuicao') return (a.data_atribuicao || '').localeCompare(b.data_atribuicao || '');
       return a.materia.localeCompare(b.materia);
     });
 
@@ -363,6 +367,22 @@ const UI = (() => {
     if (wrap && !wrap.contains(e.target)) _fecharAdminMenu();
   });
 
+  // ─── Toast de atualização ────────────────────────────────────────────────
+
+  function mostrarToastAtualizacao() {
+    const t = document.getElementById('toast-update');
+    if (t) t.style.display = 'flex';
+  }
+
+  function ocultarToastAtualizacao() {
+    const t = document.getElementById('toast-update');
+    if (t) t.style.display = 'none';
+  }
+
+  function atualizarTarefas() {
+    Tasks.aplicarAtualizacao();
+  }
+
   return {
     show, setSection, setTab,
     toggleAdminMenu, abrirSecaoAdmin, voltarDaAdmin,
@@ -373,6 +393,7 @@ const UI = (() => {
     fabClick,
     updateRangeLabel, montarMultiSelect, getChecked, montarSelectMaterias,
     render, renderTarefas, renderRegistros,
+    mostrarToastAtualizacao, ocultarToastAtualizacao, atualizarTarefas,
     abrirImagem, fecharImagem,
   };
 })();

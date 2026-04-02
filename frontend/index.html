@@ -124,10 +124,15 @@
       <select id="fil-mat" onchange="UI.renderTarefas()">
         <option value="">Todas as matérias</option>
       </select>
+      <select id="fil-vis" onchange="UI.renderTarefas()">
+        <option value="">Públicas e privadas</option>
+        <option value="publica">Somente públicas</option>
+        <option value="privada">Somente privadas</option>
+      </select>
       <span class="fl">Ordenar:</span>
       <select id="fil-ord" onchange="UI.renderTarefas()">
         <option value="entrega">Data de entrega</option>
-        <option value="envio">Data de envio</option>
+        <option value="atribuicao">Data de atribuição</option>
         <option value="materia">Matéria</option>
       </select>
     </div>
@@ -304,6 +309,13 @@
 
 <div class="overlay overlay-dark" id="ov-imagem" onclick="UI.fecharImagem()">
   <img id="img-overlay-src" src="" alt="imagem ampliada" class="img-overlay" />
+</div>
+
+
+<!-- Toast de atualização do banco -->
+<div class="toast-update" id="toast-update" style="display:none">
+  <span>Foi detectada uma alteração no banco de dados.</span>
+  <button class="btn-toast-update" onclick="UI.atualizarTarefas()">Atualizar</button>
 </div>
 
 <!-- Scripts -->

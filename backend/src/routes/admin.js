@@ -89,6 +89,7 @@ router.get('/tasks', async (_req, res) => {
   const { data, error } = await supabase
     .from('tasks')
     .select('id, nome, materia, data_entrega, visibilidade, turma_id, owner_id, criado_em, users!owner_id(username)')
+    .eq('visibilidade', 'publica')   // admins nunca veem tarefas privadas
     .order('turma_id').order('data_entrega');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data.map(t => ({ ...t, owner_username: t.users?.username, users: undefined })));

@@ -168,3 +168,42 @@ h2 { font-size: 17px; font-weight: 500; margin-bottom: 3px; }
   gap: 4px;
 }
 .btn-back:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+
+/* ── Toast de atualização ────────────────────────────────────────── */
+.toast-update {
+  position: fixed;
+  bottom: 84px;
+  right: 16px;
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  z-index: 150;
+  max-width: 320px;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.btn-toast-update {
+  padding: 5px 12px;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.btn-toast-update:hover { background: var(--color-accent-hover); }
