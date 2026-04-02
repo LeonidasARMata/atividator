@@ -76,12 +76,7 @@ const UI = (() => {
 
   // ─── Modais: Tarefas ──────────────────────────────────────────────────────
 
-  function abrirModalTarefa() {
-    // Preenche data de atribuição com hoje se ainda estiver vazia
-    const inputAtrib = document.getElementById('m-atribuicao');
-    if (inputAtrib && !inputAtrib.value) inputAtrib.value = Dates.hojeISO();
-    document.getElementById('ov-tarefa').classList.add('on');
-  }
+  function abrirModalTarefa()  { Tasks.abrirParaCriar(); }
   function fecharModalTarefa() { document.getElementById('ov-tarefa').classList.remove('on'); }
 
   // ─── Modais: Registros ────────────────────────────────────────────────────
@@ -261,9 +256,10 @@ const UI = (() => {
     }
     if (!isDone && isAtencao) statusBadge += '<span class="badge b-atencao">Atenção</span>';
 
-    // Só o dono pode excluir pelo card. Admin usa a aba "Adm. Tarefas".
+    // Dono ou admin pode editar clicando no card
+    const canEdit = isOwner || Auth.isAdmin();
     const card = document.createElement('div');
-    card.className = `tc ${sideClass}${isDone ? ' concluida' : ''}${isOwner ? ' owner-card' : ''}`;
+    card.className = `tc ${sideClass}${isDone ? ' concluida' : ''}${canEdit ? ' owner-card' : ''}`;
     card.innerHTML = `
       <div class="chk${isDone ? ' on' : ''}" onclick="event.stopPropagation();Tasks.toggleDone('${task.id}')">${isDone ? '✓' : ''}</div>
       <div class="tb">
@@ -275,18 +271,12 @@ const UI = (() => {
           ${task.visibilidade === 'privada' ? '<span class="badge b-privada">privada</span>' : ''}
           ${statusBadge}
           <span class="badge b-user">@${task.owner_username || '?'}</span>
-          ${isOwner ? '<span class="badge b-delete-hint">toque para excluir</span>' : ''}
+          ${canEdit ? '<span class="badge b-delete-hint">toque para editar</span>' : ''}
         </div>
       </div>`;
 
-    if (isOwner) {
-      card.addEventListener('click', () => {
-        UI.abrirConfirma(
-          'Excluir tarefa?',
-          `"${task.nome}" será removida permanentemente.`,
-          () => Tasks.excluir(task.id)
-        );
-      });
+    if (canEdit) {
+      card.addEventListener('click', () => Tasks.abrirParaEditar(task.id));
     }
 
     container.appendChild(card);

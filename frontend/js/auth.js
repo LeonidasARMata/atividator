@@ -97,7 +97,7 @@ const Auth = (() => {
     Tasks.pararPolling();
     currentUser = null;
     localStorage.removeItem('token');
-    document.getElementById('fab').classList.remove('on');
+    document.getElementById('fab').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';
     UI.show('pg-login');
   }
@@ -129,7 +129,7 @@ const Auth = (() => {
     }
 
     document.getElementById('bottom-nav').style.display = 'flex';
-    document.getElementById('fab').classList.add('on');
+    document.getElementById('fab').style.display = 'flex';
     UI.montarSelectMaterias();
     UI.show('pg-app');
     UI.setSection('tarefas');

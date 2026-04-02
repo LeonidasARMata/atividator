@@ -130,9 +130,13 @@ const Admin = (() => {
       return;
     }
 
+    // Compartilha cache com tasks.js para que abrirParaEditar funcione
+    Tasks.setAdminCache(_cacheAdminTasks);
+
     visible.forEach(t => {
       const row = document.createElement('div');
       row.className = 'admin-task-row';
+      const nomeEscapado = t.nome.replace(/'/g, "\'");
       row.innerHTML = `
         <div class="admin-task-info">
           <span class="admin-task-nome">${t.nome}</span>
@@ -142,7 +146,10 @@ const Admin = (() => {
             <span style="font-size:11px;color:var(--color-text-secondary)">entrega: ${Dates.fmt(t.data_entrega)}</span>
           </span>
         </div>
-        <button class="btn-sm btn-danger" onclick="Admin.confirmarExcluirTarefa('${t.id}', \`${t.nome.replace(/`/g, "'")}\`)">Excluir</button>`;
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn-sm" onclick="Tasks.abrirParaEditar('${t.id}')">Editar</button>
+          <button class="btn-sm btn-danger" onclick="Admin.confirmarExcluirTarefa('${t.id}', '${nomeEscapado}')">Excluir</button>
+        </div>`;
       list.appendChild(row);
     });
   }

@@ -1,11 +1,13 @@
 const Tasks = (() => {
   let cache      = [];
   let _pollTimer = null;
-  const POLL_MS  = 20_000;  // verifica a cada 20s
+  let _editingId    = null;   // null = modo criação, string = modo edição
+  let _adminCache   = null;   // cache compartilhado com admin.js
+  const POLL_MS  = 20_000;
 
   const getCache = () => cache;
 
-  // ── Carrega tarefas e re-renderiza ─────────────────────────────
+  // ── Carrega tarefas ────────────────────────────────────────────
   async function carregar() {
     try {
       cache = await Api.getTasks();
@@ -14,10 +16,7 @@ const Tasks = (() => {
     } catch (e) { console.error('Erro ao carregar tarefas:', e.message); }
   }
 
-  // ── Polling — detecta mudanças no banco ────────────────────────
-  // A cada POLL_MS busca as tarefas e compara com o cache.
-  // Se algo mudou (nova tarefa, exclusão, edição), exibe o toast.
-  // Não re-renderiza automaticamente — deixa o usuário decidir.
+  // ── Polling com detecção de mudança ───────────────────────────
   async function iniciarPolling() {
     pararPolling();
     _pollTimer = setInterval(async () => {
@@ -35,41 +34,85 @@ const Tasks = (() => {
     if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
   }
 
-  // Cache temporário com as tarefas novas, aguardando o usuário confirmar
   let _pendente = null;
   function _guardarPendente(novas) { _pendente = novas; }
 
-  // Chamado pelo botão "Atualizar" do toast
   function aplicarAtualizacao() {
-    if (_pendente) {
-      cache    = _pendente;
-      _pendente = null;
-    }
+    if (_pendente) { cache = _pendente; _pendente = null; }
     UI.renderTarefas();
     UI.montarSelectMaterias();
     UI.ocultarToastAtualizacao();
   }
 
-  // Compara dois arrays de tarefas pelo id e pelo conteúdo relevante
   function _houveMudanca(anterior, novo) {
     if (anterior.length !== novo.length) return true;
-    const mapaAnterior = new Map(anterior.map(t => [t.id, t]));
+    const mapa = new Map(anterior.map(t => [t.id, t]));
     for (const t of novo) {
-      const a = mapaAnterior.get(t.id);
-      if (!a) return true;  // tarefa nova
+      const a = mapa.get(t.id);
+      if (!a) return true;
       if (a.nome !== t.nome || a.data_entrega !== t.data_entrega) return true;
     }
     return false;
   }
 
-  // Remove do cache local imediatamente (admin delete)
   function removerDoCache(taskId) {
     cache = cache.filter(t => t.id !== taskId);
     UI.renderTarefas();
   }
 
-  // ── Adicionar tarefa ───────────────────────────────────────────
-  async function add() {
+  // ── Abre modal no modo CRIAR ───────────────────────────────────
+  function abrirParaCriar() {
+    _editingId = null;
+    document.getElementById('m-titulo').textContent      = 'Nova tarefa';
+    document.getElementById('btn-add-tarefa').textContent = 'Adicionar';
+    document.getElementById('btn-excluir-tarefa').style.display = 'none';
+    _limpar();
+    const inputAtrib = document.getElementById('m-atribuicao');
+    if (inputAtrib && !inputAtrib.value) inputAtrib.value = Dates.hojeISO();
+    document.getElementById('ov-tarefa').classList.add('on');
+  }
+
+  // ── Abre modal no modo EDITAR ──────────────────────────────────
+  function abrirParaEditar(taskId) {
+    const task = cache.find(t => t.id === taskId)
+               || _adminCache?.find(t => t.id === taskId);
+    if (!task) return;
+
+    _editingId = taskId;
+    document.getElementById('m-titulo').textContent       = 'Editar tarefa';
+    document.getElementById('btn-add-tarefa').textContent  = 'Salvar';
+    document.getElementById('btn-excluir-tarefa').style.display = '';
+
+    // Preenche os campos com os dados da tarefa
+    document.getElementById('m-nome').value      = task.nome;
+    document.getElementById('m-entrega').value   = task.data_entrega || '';
+    document.getElementById('m-atribuicao').value = task.data_atribuicao || '';
+
+    // Seleciona a matéria correta
+    const selMat = document.getElementById('m-mat');
+    // Garante que a opção existe antes de selecionar
+    let found = false;
+    for (const opt of selMat.options) {
+      if (opt.value === task.materia) { opt.selected = true; found = true; break; }
+    }
+    if (!found) {
+      const o = document.createElement('option');
+      o.value = o.textContent = task.materia;
+      o.selected = true;
+      selMat.appendChild(o);
+    }
+
+    // Visibilidade
+    document.querySelectorAll('input[name="vis"]').forEach(r => {
+      r.checked = r.value === task.visibilidade;
+    });
+
+    document.getElementById('m-err').style.display = 'none';
+    document.getElementById('ov-tarefa').classList.add('on');
+  }
+
+  // ── Salvar (criar ou editar) ───────────────────────────────────
+  async function salvar() {
     const nome            = document.getElementById('m-nome').value.trim();
     const materia         = document.getElementById('m-mat').value;
     const data_entrega    = document.getElementById('m-entrega').value;
@@ -85,22 +128,54 @@ const Tasks = (() => {
     }
     err.style.display = 'none';
     btn.disabled    = true;
-    btn.textContent = 'Adicionando...';
+    btn.textContent = _editingId ? 'Salvando...' : 'Adicionando...';
 
     try {
-      const nova = await Api.createTask({ nome, materia, data_entrega, data_atribuicao, visibilidade });
-      cache.push({ ...nova, done_by: [] });
+      if (_editingId) {
+        // EDITAR
+        const atualizada = await Api.updateTask(_editingId,
+          { nome, materia, data_entrega, data_atribuicao, visibilidade });
+        const idx = cache.findIndex(t => t.id === _editingId);
+        if (idx >= 0) cache[idx] = { ...cache[idx], ...atualizada };
+        // Atualiza cache admin se existir
+        if (_adminCache) {
+          const ai = _adminCache.findIndex(t => t.id === _editingId);
+          if (ai >= 0) _adminCache[ai] = { ..._adminCache[ai], ...atualizada };
+        }
+      } else {
+        // CRIAR
+        const nova = await Api.createTask({ nome, materia, data_entrega, data_atribuicao, visibilidade });
+        cache.push({ ...nova, done_by: [] });
+      }
       UI.fecharModalTarefa();
       _limpar();
       UI.renderTarefas();
       UI.montarSelectMaterias();
+      // Re-renderiza aba admin se estiver aberta
+      if (document.getElementById('sec-admin-tasks')?.classList.contains('on')) {
+        Admin.renderTarefasAdmin();
+      }
     } catch (e) {
       err.textContent   = e.message;
       err.style.display = 'block';
     } finally {
       btn.disabled    = false;
-      btn.textContent = 'Adicionar';
+      btn.textContent = _editingId ? 'Salvar' : 'Adicionar';
     }
+  }
+
+  // ── Excluir pelo botão dentro do modal de edição ───────────────
+  function excluirDoModal() {
+    if (!_editingId) return;
+    const task = cache.find(t => t.id === _editingId)
+               || _adminCache?.find(t => t.id === _editingId);
+    const nome = task?.nome || 'esta tarefa';
+    UI.fecharModalTarefa();
+    UI.abrirConfirma(
+      'Excluir tarefa?',
+      `"${nome}" será removida permanentemente.`,
+      () => excluir(_editingId)
+    );
   }
 
   // ── Marcar / desmarcar concluída ───────────────────────────────
@@ -118,11 +193,15 @@ const Tasks = (() => {
     } catch (e) { console.error(e.message); }
   }
 
-  // ── Excluir (dono, via modal de confirmação) ───────────────────
+  // ── Excluir ────────────────────────────────────────────────────
   async function excluir(taskId) {
     try {
       await Api.deleteTask(taskId);
       removerDoCache(taskId);
+      if (_adminCache) {
+        _adminCache = _adminCache.filter(t => t.id !== taskId);
+        Admin.renderTarefasAdmin();
+      }
     } catch (e) {
       UI.abrirConfirma('Erro ao excluir', e.message, null);
     }
@@ -131,12 +210,19 @@ const Tasks = (() => {
   function _limpar() {
     ['m-nome','m-entrega','m-atribuicao'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('m-mat').value = '';
+    document.getElementById('m-err').style.display = 'none';
     document.querySelector('input[name="vis"][value="publica"]').checked = true;
+    _editingId = null;
   }
+
+  // Permite que admin.js injete o cache de tarefas admin
+  function setAdminCache(c) { _adminCache = c; }
 
   return {
     getCache, carregar, iniciarPolling, pararPolling,
     aplicarAtualizacao, removerDoCache,
-    add, toggleDone, excluir,
+    abrirParaCriar, abrirParaEditar,
+    salvar, excluirDoModal, toggleDone, excluir,
+    setAdminCache,
   };
 })();
