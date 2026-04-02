@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 
   const { data, error } = await supabase
     .from('tasks')
-    .select(`id,nome,materia,data_entrega,data_envio,visibilidade,
+    .select(`id,nome,materia,data_entrega,data_atribuicao,visibilidade,
              owner_id,turma_id,criado_em,
              task_done(user_id),
              users!owner_id(username)`)
@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
 
 // ── POST /api/tasks ──────────────────────────────────────────────
 router.post('/', async (req, res) => {
-  const { nome, materia, data_entrega, data_envio, visibilidade } = req.body;
+  const { nome, materia, data_entrega, data_atribuicao, visibilidade } = req.body;
   if (!nome || !materia || !data_entrega)
     return res.status(400).json({ error: 'nome, materia e data_entrega são obrigatórios.' });
 
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
     .from('tasks')
     .insert({
       nome, materia, data_entrega,
-      data_envio:   data_envio || null,
+      data_atribuicao: data_atribuicao || new Date().toISOString().split('T')[0],
       visibilidade: visibilidade || 'publica',
       turma_id:     req.user.turma_id,
       owner_id:     req.user.id,

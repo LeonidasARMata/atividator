@@ -44,13 +44,13 @@ const Tasks = (() => {
 
   // ── Adicionar tarefa ───────────────────────────────────────────
   async function add() {
-    const nome         = document.getElementById('m-nome').value.trim();
-    const materia      = document.getElementById('m-mat').value;
-    const data_entrega = document.getElementById('m-entrega').value;
-    const data_envio   = document.getElementById('m-envio').value || null;
-    const visibilidade = document.querySelector('input[name="vis"]:checked').value;
-    const err          = document.getElementById('m-err');
-    const btn          = document.getElementById('btn-add-tarefa');
+    const nome            = document.getElementById('m-nome').value.trim();
+    const materia         = document.getElementById('m-mat').value;
+    const data_entrega    = document.getElementById('m-entrega').value;
+    const data_atribuicao = document.getElementById('m-atribuicao').value || Dates.hojeISO();
+    const visibilidade    = document.querySelector('input[name="vis"]:checked').value;
+    const err             = document.getElementById('m-err');
+    const btn             = document.getElementById('btn-add-tarefa');
 
     if (!nome || !materia || !data_entrega) {
       err.textContent   = 'Preencha nome, matéria e data de entrega.';
@@ -63,7 +63,7 @@ const Tasks = (() => {
     btn.textContent = 'Adicionando...';
 
     try {
-      const nova = await Api.createTask({ nome, materia, data_entrega, data_envio, visibilidade });
+      const nova = await Api.createTask({ nome, materia, data_entrega, data_atribuicao, visibilidade });
       cache.push({ ...nova, done_by: [] });
       UI.fecharModalTarefa();
       _limpar();
@@ -104,7 +104,7 @@ const Tasks = (() => {
   }
 
   function _limpar() {
-    ['m-nome','m-entrega','m-envio'].forEach(id => document.getElementById(id).value = '');
+    ['m-nome','m-entrega','m-atribuicao'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('m-mat').value = '';
     document.querySelector('input[name="vis"][value="publica"]').checked = true;
   }

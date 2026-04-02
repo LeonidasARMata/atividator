@@ -76,7 +76,12 @@ const UI = (() => {
 
   // ─── Modais: Tarefas ──────────────────────────────────────────────────────
 
-  function abrirModalTarefa()  { document.getElementById('ov-tarefa').classList.add('on'); }
+  function abrirModalTarefa() {
+    // Preenche data de atribuição com hoje se ainda estiver vazia
+    const inputAtrib = document.getElementById('m-atribuicao');
+    if (inputAtrib && !inputAtrib.value) inputAtrib.value = Dates.hojeISO();
+    document.getElementById('ov-tarefa').classList.add('on');
+  }
   function fecharModalTarefa() { document.getElementById('ov-tarefa').classList.remove('on'); }
 
   // ─── Modais: Registros ────────────────────────────────────────────────────
@@ -234,26 +239,23 @@ const UI = (() => {
     const isOwner   = task.owner_id === user.id;
 
     let sideClass = 'ok';
-    if (!isDone) {
-      if      (status === 'atrasada') sideClass = 'atrasada';
-      else if (status === 'urgente')  sideClass = 'urgente';
-      else if (status === 'enviada')  sideClass = 'enviada';
-      else if (isAtencao)             sideClass = 'atencao';
-    }
+    if (status === 'atrasada')     sideClass = 'atrasada';
+    else if (status === 'urgente') sideClass = 'urgente';
+    else if (isAtencao && !isDone) sideClass = 'atencao';
 
     let statusBadge = '';
-    if (!isDone) {
-      if (status === 'atrasada')
-        statusBadge = '<span class="badge b-atrasada">Atrasada</span>';
-      else if (status === 'urgente') {
-        const d = Dates.daysUntil(task.data_entrega);
-        statusBadge = `<span class="badge b-urgente">Urgente · ${d}d</span>`;
-      } else if (status === 'enviada')
-        statusBadge = '<span class="badge b-enviada">Enviada</span>';
-      else
-        statusBadge = '<span class="badge b-ok">Em tempo</span>';
-      if (isAtencao) statusBadge += '<span class="badge b-atencao">Atenção</span>';
+    if (status === 'concluida') {
+      statusBadge = '<span class="badge b-ok">Concluída</span>';
+    } else if (status === 'atrasada') {
+      const d = Math.abs(Dates.daysUntil(task.data_entrega));
+      statusBadge = `<span class="badge b-atrasada">Atrasada · ${d}d</span>`;
+    } else if (status === 'urgente') {
+      const d = Dates.daysUntil(task.data_entrega);
+      statusBadge = `<span class="badge b-urgente">Urgente · ${d}d</span>`;
+    } else {
+      statusBadge = '<span class="badge b-ok">Em tempo</span>';
     }
+    if (!isDone && isAtencao) statusBadge += '<span class="badge b-atencao">Atenção</span>';
 
     // Só o dono pode excluir pelo card. Admin usa a aba "Adm. Tarefas".
     const card = document.createElement('div');
@@ -265,7 +267,7 @@ const UI = (() => {
         <div class="meta">
           <span class="badge b-materia">${task.materia}</span>
           <span class="badge b-entrega">entrega: ${Dates.fmt(task.data_entrega)}</span>
-          ${task.data_envio ? `<span class="badge b-envio">enviado: ${Dates.fmt(task.data_envio)}</span>` : ''}
+          ${task.data_atribuicao ? `<span class="badge b-atribuicao">atribuída: ${Dates.fmt(task.data_atribuicao)}</span>` : ''}
           ${task.visibilidade === 'privada' ? '<span class="badge b-privada">privada</span>' : ''}
           ${statusBadge}
           <span class="badge b-user">@${task.owner_username || '?'}</span>
