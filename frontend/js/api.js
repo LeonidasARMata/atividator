@@ -65,26 +65,12 @@ const Api = (() => {
   const unmarkDone = (id)     => _req('DELETE', `/api/tasks/${id}/done`);
 
   // ── Registros ────────────────────────────────────────────────────
-  const getRegistros   = ()      => _req('GET',    '/api/registros');
-  const deleteRegistro = (id)    => _req('DELETE', `/api/registros/${id}`);
-  const updateRegistro = (id, p) => _req('PATCH',  `/api/registros/${id}`, p);
-
-  function createRegistro(titulo, materia, descricao, files) {
-    const fd = new FormData();
-    fd.append('titulo', titulo);
-    fd.append('materia', materia);
-    fd.append('descricao', descricao);
-    for (const f of files) fd.append('imagens', f);
-    return _req('POST', '/api/registros', fd, true);
-  }
-
-  function addImagens(registroId, files) {
-    const fd = new FormData();
-    for (const f of files) fd.append('imagens', f);
-    return _req('POST', `/api/registros/${registroId}/imagens`, fd, true);
-  }
-
-  const deleteImagem = (imgId) => _req('DELETE', `/api/registros/imagens/${imgId}`);
+  const getRegistros   = ()         => _req('GET',    '/api/registros');
+  const deleteRegistro = (id)       => _req('DELETE', `/api/registros/${id}`);
+  // Recebe FormData diretamente (imagens + arquivo)
+  const createRegistro = (fd)       => _req('POST',   '/api/registros', fd, true);
+  const updateRegistro = (id, fd)   => _req('PATCH',  `/api/registros/${id}`, fd, true);
+  const deleteImagem   = (imgId)    => _req('DELETE', `/api/registros/imagens/${imgId}`);
 
   // ── Admin ────────────────────────────────────────────────────────
   const adminGetUsers      = ()            => _req('GET',    '/api/admin/users');
@@ -101,7 +87,7 @@ const Api = (() => {
     register, login, getMe, getTurmas, updateConfig,
     getTasks, createTask, updateTask, deleteTask, markDone, unmarkDone,
     getRegistros, createRegistro, updateRegistro, deleteRegistro,
-    addImagens, deleteImagem,
+    deleteImagem,
     adminGetUsers, adminPatchUser, adminDeleteUser,
     adminGetTurmas, adminCreateTurma, adminDeleteTurma,
     adminGetTasks, adminDeleteTask,

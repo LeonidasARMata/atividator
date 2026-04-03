@@ -35,7 +35,10 @@ const UI = (() => {
     document.getElementById(`sec-${section}`)?.classList.add('on');
 
     const fab = document.getElementById('fab');
-    fab.style.display = (section === 'tarefas' || section === 'registros') ? 'flex' : 'none';
+    const isAdmin = Auth.isAdmin();
+    if (section === 'tarefas') fab.style.display = 'flex';
+    else if (section === 'registros') fab.style.display = isAdmin ? 'flex' : 'none';
+    else fab.style.display = 'none';
 
     if (section === 'admin-users')  Admin.carregarUsuarios();
     if (section === 'admin-tasks')  Admin.carregarTarefasAdmin();
@@ -285,60 +288,147 @@ const UI = (() => {
   // ─── Renderização: Registros ──────────────────────────────────────────────
 
   function renderRegistros() {
-    const user  = Auth.get();
-    const list  = document.getElementById('reg-list');
-    const cache = Registros.getCache();
+    const cache   = Registros.getCache();
+    const busca   = (document.getElementById('reg-busca')?.value || '').toLowerCase();
+    const filMat  = document.getElementById('fil-reg-mat')?.value || '';
+    const ord     = document.getElementById('fil-reg-ord')?.value || 'data';
+    const list    = document.getElementById('reg-list');
+    if (!list) return;
 
-    if (cache.length === 0) {
-      list.innerHTML = '<div class="empty">Nenhum registro ainda.</div>';
-      return;
+    // Popula filtro de matéria dinamicamente
+    const mats = [...new Set(cache.map(r => r.materia))].sort();
+    const selMat = document.getElementById('fil-reg-mat');
+    if (selMat) {
+      const cur = selMat.value;
+      selMat.innerHTML = '<option value="">Todas as matérias</option>';
+      mats.forEach(m => _addOpt(selMat, m));
+      selMat.value = cur;
     }
 
-    // Fixados primeiro, depois por data
-    const sorted = [...cache].sort((a, b) => {
+    let visible = cache.filter(r => {
+      if (filMat && r.materia !== filMat) return false;
+      if (busca && !r.titulo.toLowerCase().includes(busca)) return false;
+      return true;
+    });
+
+    // Fixados no topo, depois ordena pelo critério
+    visible.sort((a, b) => {
       if (a.fixado && !b.fixado) return -1;
-      if (!a.fixado && b.fixado) return  1;
-      return new Date(b.criado_em) - new Date(a.criado_em);
+      if (!a.fixado && b.fixado)  return  1;
+      if (ord === 'materia') return a.materia.localeCompare(b.materia);
+      // ord === 'data' — mais recente primeiro
+      return (b.data_atribuicao || '').localeCompare(a.data_atribuicao || '');
     });
 
     list.innerHTML = '';
-    sorted.forEach(r => {
-      const isOwner   = r.owner_id === user.id;
-      const canDelete = isOwner || Auth.isAdmin();
+    if (visible.length === 0) {
+      list.innerHTML = '<div class="empty">Nenhum registro encontrado.</div>';
+      return;
+    }
 
-      const card = document.createElement('div');
-      card.className = `reg-card${r.fixado ? ' fixado' : ''}`;
-      card.innerHTML = `
-        <div class="reg-header">
-          <div class="reg-title-row">
-            ${r.fixado ? '<span class="pin-icon" title="Fixado">📌</span>' : ''}
-            <span class="reg-titulo">${r.titulo}</span>
-          </div>
-          <div class="reg-actions">
-            ${Auth.isAdmin() ? `<button class="btn-sm btn-pin" onclick="Admin.toggleFixar('${r.id}')">${r.fixado ? 'Desafixar' : 'Fixar'}</button>` : ''}
-            ${canDelete ? `<button class="btn-icon-danger" onclick="Registros.excluir('${r.id}')">✕</button>` : ''}
-          </div>
-        </div>
-        <div class="meta" style="margin-bottom:8px">
-          <span class="badge b-materia">${r.materia}</span>
-          <span class="badge b-user">@${r.owner_username || '?'}</span>
-        </div>
-        <p class="reg-desc">${r.descricao}</p>
-        ${r.imagens?.length ? `
-          <div class="reg-imgs">
-            ${r.imagens.map(img => `<img src="${img.url}" class="reg-img" alt="imagem" onclick="UI.abrirImagem('${img.url}')" />`).join('')}
-          </div>` : ''}`;
-      list.appendChild(card);
-    });
+    visible.forEach(r => _renderRegCard(r, list));
   }
 
-  function abrirImagem(url) {
-    document.getElementById('img-overlay-src').src = url;
-    document.getElementById('ov-imagem').classList.add('on');
-  }
-  function fecharImagem() { document.getElementById('ov-imagem').classList.remove('on'); }
+  function _renderRegCard(r, container) {
+    // Badge "novo" — criado nos últimos 7 dias
+    const criado    = new Date(r.criado_em);
+    const diasAtras = Math.round((new Date() - criado) / 86_400_000);
+    const isNovo    = diasAtras <= 7;
 
-  // ─── privado ──────────────────────────────────────────────────────────────
+    // Indicadores de conteúdo
+    const indicators = [];
+    if (r.descricao)           indicators.push('<span class="reg-ind" title="Tem descrição">Desc.</span>');
+    if (r.imagens?.length > 0) indicators.push(`<span class="reg-ind reg-ind-img" title="Tem imagem">Img (${r.imagens.length})</span>`);
+    if (r.arquivo_url)         indicators.push('<span class="reg-ind reg-ind-arq" title="Tem arquivo">Arquivo</span>');
+
+    const card = document.createElement('div');
+    card.className = 'reg-card-compact' + (r.fixado ? ' fixado' : '');
+    card.innerHTML = `
+      <div class="reg-card-left">
+        <div class="reg-card-title-row">
+          ${r.fixado ? '<span class="pin-icon">📌</span>' : ''}
+          <span class="reg-card-titulo">${r.titulo}</span>
+          ${isNovo ? '<span class="badge-novo">Novo</span>' : ''}
+        </div>
+        <div class="reg-card-sub">
+          <span class="badge b-materia" style="font-size:11px">${r.materia}</span>
+          <span class="reg-data">${Dates.fmt(r.data_atribuicao)}</span>
+          ${indicators.join('')}
+        </div>
+      </div>
+      <svg class="reg-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    card.addEventListener('click', () => abrirDetalheRegistro(r));
+    container.appendChild(card);
+  }
+
+  // ─── Overlay de detalhe do registro ──────────────────────────────────────
+
+  function abrirDetalheRegistro(r) {
+    Registros.setDetalheId(r.id);
+
+    document.getElementById('det-titulo').textContent = r.titulo;
+
+    // Meta
+    const meta = document.getElementById('det-meta');
+    meta.innerHTML = `
+      <span class="badge b-materia">${r.materia}</span>
+      <span class="reg-data">${Dates.fmt(r.data_atribuicao)}</span>
+      <span class="badge b-user">@${r.owner_username || '?'}</span>
+      ${r.fixado ? '<span class="badge b-atencao">Fixado</span>' : ''}`;
+
+    // Descrição
+    const desc = document.getElementById('det-desc');
+    if (r.descricao) {
+      desc.textContent = r.descricao;
+      desc.style.display = '';
+    } else {
+      desc.style.display = 'none';
+    }
+
+    // Imagens
+    const imgsEl = document.getElementById('det-imgs');
+    if (r.imagens?.length > 0) {
+      imgsEl.innerHTML = r.imagens.map(img =>
+        `<img src="${img.url}" class="reg-img" alt="imagem" onclick="UI.abrirImagem('${img.url}')" />`
+      ).join('');
+      imgsEl.style.display = '';
+    } else {
+      imgsEl.innerHTML = '';
+      imgsEl.style.display = 'none';
+    }
+
+    // Arquivo
+    const arquivoEl = document.getElementById('det-arquivo');
+    if (r.arquivo_url) {
+      const nome = r.arquivo_url.split('/').pop().replace(/^arq-\d+-/, '');
+      arquivoEl.innerHTML = `
+        <a class="btn-arquivo" href="${r.arquivo_url}" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+            <path d="M4 4h8l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 4v5h5" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          ${nome}
+        </a>`;
+      arquivoEl.style.display = '';
+    } else {
+      arquivoEl.innerHTML = '';
+      arquivoEl.style.display = 'none';
+    }
+
+    // Botão editar — só para admin
+    const btnEdit = document.getElementById('btn-editar-registro');
+    btnEdit.style.display = Auth.isAdmin() ? '' : 'none';
+
+    document.getElementById('ov-reg-detalhe').classList.add('on');
+  }
+
+  function fecharDetalheRegistro() {
+    document.getElementById('ov-reg-detalhe').classList.remove('on');
+  }
+
+    // ─── privado ──────────────────────────────────────────────────────────────
 
   function _updateRange(inputId, labelId) {
     const val = document.getElementById(inputId).value;
@@ -349,6 +439,20 @@ const UI = (() => {
     const o = document.createElement('option');
     o.value = o.textContent = val;
     sel.appendChild(o);
+  }
+
+  // ─── Visualizador de imagem ──────────────────────────────────────────────
+
+  function abrirImagem(url) {
+    const el = document.getElementById('img-overlay-src');
+    if (el) el.src = url;
+    document.getElementById('ov-imagem').classList.add('on');
+  }
+
+  function fecharImagem() {
+    document.getElementById('ov-imagem').classList.remove('on');
+    const el = document.getElementById('img-overlay-src');
+    if (el) el.src = '';
   }
 
   // Fecha o dropdown admin ao clicar em qualquer lugar fora dele
@@ -384,6 +488,7 @@ const UI = (() => {
     updateRangeLabel, montarMultiSelect, getChecked, montarSelectMaterias,
     render, renderTarefas, renderRegistros,
     mostrarToastAtualizacao, ocultarToastAtualizacao, atualizarTarefas,
+    abrirDetalheRegistro, fecharDetalheRegistro,
     abrirImagem, fecharImagem,
   };
 })();

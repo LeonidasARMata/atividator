@@ -141,10 +141,18 @@
 
   <!-- ── SEÇÃO: REGISTROS ──────────────────────────────────────── -->
   <div id="sec-registros" class="section">
-    <div class="filters">
-      <span class="fl">Filtrar por matéria:</span>
+    <div class="reg-search-bar">
+      <input id="reg-busca" type="text" placeholder="Buscar por título..." oninput="UI.renderRegistros()" />
+    </div>
+    <div class="filters" style="margin-bottom:.75rem">
+      <span class="fl">Matéria:</span>
       <select id="fil-reg-mat" onchange="UI.renderRegistros()">
         <option value="">Todas</option>
+      </select>
+      <span class="fl">Ordenar:</span>
+      <select id="fil-reg-ord" onchange="UI.renderRegistros()">
+        <option value="data">Data de atribuição</option>
+        <option value="materia">Matéria (A–Z)</option>
       </select>
     </div>
     <div id="reg-list" class="reg-list"></div>
@@ -259,27 +267,58 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     MODAL: NOVO REGISTRO
+     MODAL: CRIAR / EDITAR REGISTRO (só admin)
 ════════════════════════════════════════════════════════════════ -->
 <div class="overlay" id="ov-registro">
   <div class="modal">
-    <p class="modal-title">Novo registro</p>
+    <p class="modal-title" id="rg-titulo-modal">Novo registro</p>
     <div class="f"><label>Título</label>
       <input id="rg-titulo" type="text" placeholder="Ex: Resumo sobre fotossíntese" />
     </div>
     <div class="f"><label>Matéria</label>
       <select id="rg-mat"><option value="">Selecione...</option></select>
     </div>
-    <div class="f"><label>Descrição</label>
-      <textarea id="rg-desc" rows="4" placeholder="Escreva o conteúdo do registro..." style="width:100%;resize:vertical"></textarea>
+    <div class="f"><label>Data de atribuição</label>
+      <input id="rg-data" type="date" />
     </div>
-    <div class="f"><label>Imagens <span class="hint">(opcional, máx. 10)</span></label>
+    <div class="f"><label>Descrição <span class="hint">(opcional)</span></label>
+      <textarea id="rg-desc" rows="3" placeholder="Conteúdo do registro..." style="width:100%;resize:vertical"></textarea>
+    </div>
+    <div class="f"><label>Imagens <span class="hint">(opcional, máx. 10, cada uma até 10MB)</span></label>
       <input id="rg-imgs" type="file" accept="image/*" multiple />
     </div>
-    <p class="err" id="rg-err">Preencha título, matéria e descrição.</p>
+    <div class="f"><label>Arquivo <span class="hint">(opcional, até 10MB — PDF, DOCX, etc.)</span></label>
+      <input id="rg-arq" type="file" />
+    </div>
+    <p class="err" id="rg-err"></p>
     <div class="modal-footer">
+      <button class="btn-red" id="btn-excluir-registro" style="display:none;margin-right:auto"
+        onclick="Registros.excluirDoModal()">Excluir</button>
       <button class="btn-ghost" onclick="UI.fecharModalRegistro()">Cancelar</button>
-      <button class="btn-blue" id="btn-add-registro" onclick="Registros.add()">Publicar</button>
+      <button class="btn-blue" id="btn-add-registro" onclick="Registros.salvar()">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OVERLAY: DETALHE DO REGISTRO
+════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-reg-detalhe">
+  <div class="modal modal-detalhe">
+    <div class="reg-detalhe-header">
+      <div>
+        <p class="modal-title" id="det-titulo" style="margin-bottom:4px"></p>
+        <div class="meta" id="det-meta"></div>
+      </div>
+      <button class="btn-icon-danger" onclick="UI.fecharDetalheRegistro()" style="font-size:16px;flex-shrink:0">✕</button>
+    </div>
+    <p class="reg-desc" id="det-desc" style="margin-top:12px"></p>
+    <div class="reg-imgs" id="det-imgs" style="margin-top:10px"></div>
+    <div id="det-arquivo" style="margin-top:10px"></div>
+    <div class="modal-footer" style="margin-top:1rem">
+      <button class="btn-ghost btn-editar-registro" id="btn-editar-registro" style="display:none"
+        onclick="Registros.abrirParaEditar()">Editar registro</button>
+      <button class="btn-ghost" onclick="UI.fecharDetalheRegistro()">Fechar</button>
     </div>
   </div>
 </div>

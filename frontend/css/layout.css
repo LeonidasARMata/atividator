@@ -207,3 +207,69 @@ h2 { font-size: 17px; font-weight: 500; margin-bottom: 3px; }
   flex-shrink: 0;
 }
 .btn-toast-update:hover { background: var(--color-accent-hover); }
+
+/* ── Registros — barra de busca ──────────────────────────────────── */
+.reg-search-bar { margin-bottom: .75rem; }
+.reg-search-bar input { width: 100%; }
+
+/* ── Registros — card compacto ───────────────────────────────────── */
+.reg-card-compact {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: .85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background var(--transition);
+  margin-bottom: 8px;
+}
+.reg-card-compact:hover  { background: var(--color-bg-subtle); }
+.reg-card-compact.fixado { border-left: 3px solid var(--color-accent); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+
+.reg-card-left { flex: 1; min-width: 0; }
+.reg-card-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+.reg-card-titulo { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.reg-card-sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.reg-data { font-size: 11px; color: var(--color-text-secondary); }
+.reg-chevron { color: var(--color-text-secondary); flex-shrink: 0; }
+
+/* Badge "Novo" */
+.badge-novo {
+  font-size: 10px; font-weight: 500;
+  padding: 2px 6px; border-radius: 20px;
+  background: var(--color-bg-info); color: var(--color-text-info);
+}
+
+/* Indicadores de conteúdo */
+.reg-ind {
+  font-size: 10px; font-weight: 500;
+  padding: 2px 6px; border-radius: 20px;
+  background: var(--color-bg-subtle); color: var(--color-text-secondary);
+}
+.reg-ind-img { background: var(--color-bg-success); color: var(--color-text-success); }
+.reg-ind-arq { background: var(--color-bg-warning); color: var(--color-text-warning); }
+
+/* ── Overlay de detalhe ──────────────────────────────────────────── */
+.modal-detalhe { max-width: 560px; }
+.reg-detalhe-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.reg-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; white-space: pre-wrap; }
+.reg-imgs { display: flex; flex-wrap: wrap; gap: 8px; }
+.reg-img  { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-md); cursor: zoom-in; border: 0.5px solid var(--color-border-default); }
+
+/* Botão de arquivo */
+.btn-arquivo {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px;
+  font-size: 13px; font-weight: 500;
+  color: var(--color-text-info);
+  background: var(--color-bg-info);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background var(--transition);
+}
+.btn-arquivo:hover { background: #B5D4F4; }
+
+.btn-editar-registro { color: var(--color-accent); border-color: var(--color-accent); }
